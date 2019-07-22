@@ -22,6 +22,10 @@ struct clist_node_internal
 
 #define clist_init(list_ptr, destructor_fn) ((list_ptr)->next = (list_ptr), (list_ptr)->prev = (list_ptr), (list_ptr)->destructor = destructor_fn)
 
+#define clist_next(list_ptr) ((typeof(list_ptr))(list_ptr)->next)
+
+#define clist_prev(list_ptr) ((typeof(list_ptr))(list_ptr)->prev)
+
 #define clist_next_object(list_ptr) (((typeof(list_ptr))(list_ptr)->next)->object)
 
 #define clist_prev_object(list_ptr) (((typeof(list_ptr))(list_ptr)->prev)->object)
@@ -48,7 +52,7 @@ struct clist_node_internal
 
 #define clist_foreach(item, list_ptr)                                     \
 	for (typeof((list_ptr)->object) *item = &(list_ptr)->object;      \
-	     item != NULL;                                                \
+	     list_ptr != NULL && item != NULL;                            \
 	     item = (((clist(typeof(                                      \
 			  (list_ptr)->object)) *)clist_from_object(item)) \
 			 ->next == (list_ptr))                            \
@@ -64,25 +68,8 @@ struct clist_node_internal
 			? NULL                                            \
 			: &(clist_prev_object(clist_from_object(item))))
 
-#define clist_push_back(list_ptr, item, destructor_fn)           \
-	do                                                       \
-	{                                                        \
-		typeof(list_ptr) __i__ = malloc(sizeof(*__i__)); \
-		if (__i__ == NULL)                               \
-			break;                                   \
-		__i__->object = item;                            \
-		if ((list_ptr) == NULL)                          \
-		{                                                \
-			(list_ptr) = __i__;                      \
-			clist_init(list_ptr, destructor_fn);     \
-			break;                                   \
-		}                                                \
-		__i__->destructor = destructor_fn;               \
-		__i__->prev = (list_ptr)->prev;                  \
-		(list_ptr)->prev = __i__;                        \
-		((typeof(__i__))((__i__->prev)))->next = __i__;  \
-		__i__->next = (list_ptr);                        \
-	} while (0)
+#define clist_push_back(list_ptr, item, destructor_fn) \
+	clist_push_before(list_ptr, item, destructor_fn)
 
 #define clist_emplace_back(list_ptr, destructor_fn, constructor_fn, ...) \
 	do                                                               \
@@ -90,44 +77,29 @@ struct clist_node_internal
 		typeof(list_ptr) __i__ = malloc(sizeof(*__i__));         \
 		if (__i__ == NULL)                                       \
 			break;                                           \
-		if (constructor_fn(&(__i__)->object, ##__VA_ARGS__))     \
+		if (constructor_fn(&__i__->object, ##__VA_ARGS__) < 0)   \
 		{                                                        \
-			free((__i__));                                   \
-			(__i__) = NULL;                                  \
+			free(__i__);                                     \
 			break;                                           \
 		}                                                        \
 		if ((list_ptr) == NULL)                                  \
 		{                                                        \
-			(list_ptr) = __i__;                              \
-			clist_init(list_ptr, destructor_fn);             \
+			clist_init(__i__, destructor_fn);                \
+			clist_assign(list_ptr, __i__);                   \
 			break;                                           \
 		}                                                        \
 		__i__->destructor = destructor_fn;                       \
 		__i__->prev = (list_ptr)->prev;                          \
 		(list_ptr)->prev = __i__;                                \
-		((typeof(__i__))((__i__->prev)))->next = __i__;          \
+		clist_prev(__i__)->next = __i__;                         \
 		__i__->next = (list_ptr);                                \
 	} while (0)
 
-#define clist_push_front(list_ptr, item, destructor_fn)          \
-	do                                                       \
-	{                                                        \
-		typeof(list_ptr) __i__ = malloc(sizeof(*__i__)); \
-		if (__i__ == NULL)                               \
-			break;                                   \
-		__i__->object = item;                            \
-		if ((list_ptr) == NULL)                          \
-		{                                                \
-			(list_ptr) = __i__;                      \
-			clist_init(list_ptr, destructor_fn);     \
-			break;                                   \
-		}                                                \
-		__i__->destructor = destructor_fn;               \
-		__i__->next = (list_ptr);                        \
-		__i__->prev = (list_ptr)->prev;                  \
-		(list_ptr)->prev = __i__;                        \
-		((typeof(__i__))((__i__->prev)))->next = __i__;  \
-		clist_assign(list_ptr, __i__);                   \
+#define clist_push_front(list_ptr, item, destructor_fn)           \
+	do                                                        \
+	{                                                         \
+		clist_push_before(list_ptr, item, destructor_fn); \
+		clist_assign(list_ptr, (list_ptr)->prev);         \
 	} while (0)
 
 #define clist_emplace_front(list_ptr, destructor_fn, constructor_fn, ...) \
@@ -136,23 +108,22 @@ struct clist_node_internal
 		typeof(list_ptr) __i__ = malloc(sizeof(*__i__));          \
 		if (__i__ == NULL)                                        \
 			break;                                            \
-		if (constructor_fn(&(__i__)->object, ##__VA_ARGS__))      \
+		if (constructor_fn(&__i__->object, ##__VA_ARGS__) < 0)    \
 		{                                                         \
-			free((__i__));                                    \
-			(__i__) = NULL;                                   \
+			free(__i__);                                      \
 			break;                                            \
 		}                                                         \
 		if ((list_ptr) == NULL)                                   \
 		{                                                         \
-			(list_ptr) = __i__;                               \
-			clist_init(list_ptr, destructor_fn);              \
+			clist_init(__i__, destructor_fn);                 \
+			clist_assign(list_ptr, __i__);                    \
 			break;                                            \
 		}                                                         \
 		__i__->destructor = destructor_fn;                        \
-		__i__->next = (list_ptr);                                 \
 		__i__->prev = (list_ptr)->prev;                           \
 		(list_ptr)->prev = __i__;                                 \
-		((typeof(__i__))((__i__->prev)))->next = __i__;           \
+		clist_prev(__i__)->next = __i__;                          \
+		__i__->next = (list_ptr);                                 \
 		clist_assign(list_ptr, __i__);                            \
 	} while (0)
 
@@ -218,36 +189,84 @@ static inline size_t clist_inline_size(void *p)
 
 #define clist_size(list_ptr) clist_inline_size(list_ptr)
 
-#define clist_push_after(list_ptr, item, destructor_fn)                 \
-	do                                                              \
-	{                                                               \
-		if (list_ptr == NULL)                                   \
-		{                                                       \
-			clist_push_back(list_ptr, item, destructor_fn); \
-			break;                                          \
-		}                                                       \
-		typeof(list_ptr) __i__;                                 \
-		clist_new_node(__i__, item, destructor_fn);             \
-		__i__->prev = (list_ptr);                               \
-		__i__->next = (list_ptr)->next;                         \
-		((typeof(list_ptr))(__i__)->next)->prev = __i__;        \
-		(list_ptr)->next = __i__;                               \
+#define clist_push_after(list_ptr, item, destructor_fn)     \
+	do                                                  \
+	{                                                   \
+		typeof(list_ptr) __i__;                     \
+		clist_new_node(__i__, item, destructor_fn); \
+		if (list_ptr == NULL)                       \
+		{                                           \
+			clist_assign(list_ptr, __i__);      \
+			break;                              \
+		}                                           \
+		__i__->prev = (list_ptr);                   \
+		__i__->next = (list_ptr)->next;             \
+		clist_next(__i__)->prev = __i__;            \
+		(list_ptr)->next = __i__;                   \
 	} while (0)
 
-#define clist_push_before(list_ptr, item, destructor_fn)                \
-	do                                                              \
-	{                                                               \
-		if (list_ptr == NULL)                                   \
-		{                                                       \
-			clist_push_back(list_ptr, item, destructor_fn); \
-			break;                                          \
-		}                                                       \
-		typeof(list_ptr) __i__;                                 \
-		clist_new_node(__i__, item, destructor_fn);             \
-		__i__->next = (list_ptr);                               \
-		__i__->prev = (list_ptr)->prev;                         \
-		((typeof(list_ptr))(list_ptr)->prev)->next = __i__;     \
-		(list_ptr)->prev = __i__;                               \
+#define clist_emplace_after(list_ptr, destructor_fn, constructor_fn, ...) \
+	do                                                                \
+	{                                                                 \
+		typeof(list_ptr) __i__ = malloc(sizeof(*(list_ptr)));     \
+		if (__i__ == NULL)                                        \
+			break;                                            \
+		if (constructor_fn(&__i__->object, ##__VA_ARGS__) < 0)    \
+		{                                                         \
+			free(__i__);                                      \
+			break;                                            \
+		}                                                         \
+		if ((list_ptr) == NULL)                                   \
+		{                                                         \
+			clist_init(__i__, destructor_fn);                 \
+			clist_assign(list_ptr, __i__);                    \
+			break;                                            \
+		}                                                         \
+		__i__->destructor = destructor_fn;                        \
+		__i__->prev = (list_ptr);                                 \
+		__i__->next = (list_ptr)->next;                           \
+		(list_ptr)->next = __i__;                                 \
+		clist_next(__i__)->prev = __i__;                          \
+	} while (0)
+
+#define clist_push_before(list_ptr, item, destructor_fn)    \
+	do                                                  \
+	{                                                   \
+		typeof(list_ptr) __i__;                     \
+		clist_new_node(__i__, item, destructor_fn); \
+		if ((list_ptr) == NULL)                     \
+		{                                           \
+			clist_assign(list_ptr, __i__);      \
+			break;                              \
+		}                                           \
+		__i__->next = (list_ptr);                   \
+		__i__->prev = (list_ptr)->prev;             \
+		clist_prev(__i__)->next = __i__;            \
+		(list_ptr)->prev = __i__;                   \
+	} while (0)
+
+#define clist_emplace_before(list_ptr, destructor_fn, constructor_fn, ...) \
+	do                                                                 \
+	{                                                                  \
+		typeof(list_ptr) __i__ = malloc(sizeof(*(list_ptr)));      \
+		if (__i__ == NULL)                                         \
+			break;                                             \
+		if (constructor_fn(&__i__->object, ##__VA_ARGS__) < 0)     \
+		{                                                          \
+			free(__i__);                                       \
+			break;                                             \
+		}                                                          \
+		if ((list_ptr) == NULL)                                    \
+		{                                                          \
+			clist_init(__i__, destructor_fn);                  \
+			clist_assign(list_ptr, __i__);                     \
+			break;                                             \
+		}                                                          \
+		__i__->destructor = destructor_fn;                         \
+		__i__->prev = (list_ptr)->prev;                            \
+		__i__->next = (list_ptr);                                  \
+		clist_prev(__i__)->next = __i__;                           \
+		(list_ptr)->prev = __i__;                                  \
 	} while (0)
 
 #endif
