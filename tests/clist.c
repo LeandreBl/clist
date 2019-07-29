@@ -228,3 +228,61 @@ Test(clist, emplace_before)
 	}
 	clist_destroy(list);
 }
+
+Test(clist, swap)
+{
+	clist(int) *list = NULL;
+	clist(int) *p;
+
+	clist_push_back(list, 5, NULL);
+	clist_push_back(list, 14344, NULL);
+	clist_assign(p, clist_next(list));
+
+	cr_assert_eq(p->object, 14344);
+	cr_assert_eq(p->prev, list);
+	cr_assert_eq(p->next, list);
+
+	cr_assert_eq(list->object, 5);
+	cr_assert_eq(list->prev, p);
+	cr_assert_eq(list->next, p);
+
+	clist_swap(p, list);
+
+	cr_assert_eq(p->object, 5);
+	cr_assert_eq(p->prev, p);
+	cr_assert_eq(p->next, p);
+
+	cr_assert_eq(list->object, 14344);
+	cr_assert_eq(list->prev, list);
+	cr_assert_eq(list->next, list);
+
+	clist_destroy(list);
+}
+
+Test(clist, remove)
+{
+	clist(int) *list = NULL;
+	clist(int) *p;
+
+	for (int i = 0; i < 20; ++i)
+		clist_push_back(list, i, NULL);
+	clist_foreach(var, list) {
+		clist_assign(p, clist_from_object(var)->next);
+		if (p->object > 5) {
+			clist_remove(p);
+			free(p);
+		}
+	}
+	cr_assert_eq(clist_size(list), 13);
+	int i = 0;
+	clist_foreach(var, list) {
+		if (i <= 5)
+			cr_assert_eq(*var, i);
+		else
+			cr_assert_eq(*var, i * 2 - 5);
+		++i;
+	}
+	clist_destroy(list);
+}
+
+//erase

@@ -6,8 +6,8 @@
 
 struct clist_node_internal
 {
-	void *prev;
-	void *next;
+	struct clist_node_internal *prev;
+	struct clist_node_internal *next;
 	void (*destructor)(void *);
 };
 
@@ -268,5 +268,57 @@ static inline size_t clist_inline_size(void *p)
 		clist_prev(__i__)->next = __i__;                           \
 		(list_ptr)->prev = __i__;                                  \
 	} while (0)
+
+static inline void clist_inline_swap(void *c1, void *c2)
+{
+	struct clist_node_internal *pc1 = c1;
+	struct clist_node_internal *pc2 = c2;
+	struct clist_node_internal *prev = pc1->prev;
+	struct clist_node_internal *next = pc1->next;
+
+	pc1->prev = pc2->prev;
+	pc1->next = pc2->next;
+	pc1->prev->next = pc1;
+	pc1->next->prev = pc1;
+	pc2->prev = prev;
+	pc2->next = next;
+	pc2->prev->next = pc2;
+	pc2->next->prev = pc2;
+}
+
+#define clist_swap(list_ptr1, list_ptr2)                 \
+	do                                               \
+	{                                                \
+		clist_inline_swap(list_ptr1, list_ptr2); \
+		void *tmp = list_ptr1;                   \
+		clist_assign(list_ptr1, list_ptr2);      \
+		clist_assign(list_ptr2, tmp);            \
+	} while (0)
+
+static inline void clist_inline_remove(void *list)
+{
+	struct clist_node_internal *p = list;
+
+	p->prev->next = p->next;
+	p->next->prev = p->prev;
+}
+
+#define clist_remove(list_ptr)                            \
+	do                                                \
+	{                                                 \
+		clist_inline_remove(list_ptr);            \
+		clist_assign((list_ptr)->prev, list_ptr); \
+		clist_assign((list_ptr)->next, list_ptr); \
+	} while (0)
+
+static inline void clist_inline_erase(void *list)
+{
+	struct clist_node_internal *p = list;
+
+	clist_inline_remove(list);
+	p->destructor(list);
+}
+
+#define clist_erase(list_ptr) clist_inline_erase(list_ptr)
 
 #endif
