@@ -39,7 +39,7 @@ static int new_timed_str(char **pdest, const char *input)
 	return 0;
 }
 
-/* A simple program that store each user input line with the associated time */
+/* A simple program that stores each user given line with it's associated time */
 int main(void)
 {
 	/* Declare an empty list */
@@ -49,11 +49,11 @@ int main(void)
 	ssize_t rd;
 
 	do {
-		/* Set `input` and `n` to zero, so that getline will allocate itself */
+		/* Set `input` and `n` to zero, so that getline will allocate the buffer itself */
 		input = NULL;
 		n = 0;
 
-		/* Read a line, store the allocated pointer in `input` variable */
+		/* Read a line, stores the allocated pointer in the `input` variable */
 		rd = getline(&input, &n, stdin);
 
 		/* In case of a ctrl + D or an error */
