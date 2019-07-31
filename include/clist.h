@@ -188,6 +188,18 @@ struct clist_node_internal {
 
 #define clist_erase(list_ptr) clist_generic_erase(list_ptr)
 
+#define clist_move_after(node, dest_node) clist_generic_move_after(node, dest_node)
+
+#define clist_move_before(node, dest_node) clist_generic_move_before(node, dest_node)
+
+#define clist_move_back(node, list) clist_generic_move_before(node, list)
+
+#define clist_move_front(node, list)                                                                                   \
+	do {                                                                                                           \
+		clist_generic_move_front(node, dest_node);                                                             \
+		clist_assign(list, node);                                                                              \
+	} while (0)
+
 /* This should not be use as it */
 size_t clist_generic_size(void *list);
 void clist_generic_swap(void *list1, void *list2);
@@ -202,5 +214,7 @@ void clist_generic_emplace_before(void *plist, void *pnode, void (*pdestructor)(
 void clist_generic_emplace_after(void *plist, void *pnode, void (*pdestructor)());
 void clist_generic_push_after(void *plist, void *pnode);
 void clist_generic_push_before(void *plist, void *pnode);
+void clist_generic_move_after(void *pnode, void *pdest);
+void clist_generic_move_before(void *pnode, void *pdest);
 
 #endif

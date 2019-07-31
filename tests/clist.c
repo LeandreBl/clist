@@ -54,7 +54,8 @@ Test(clist, push_front)
 		cr_assert_eq(list->object, i);
 	}
 	int i = 0;
-	clist_foreach(val, list) {
+	clist_foreach(val, list)
+	{
 		cr_assert_eq(*val, i);
 		++i;
 	}
@@ -123,10 +124,11 @@ Test(clist, push_after)
 		clist_push_after(list, i, NULL);
 		cr_assert_eq(clist_next_object(list), i);
 	}
-	clist(int) *node;
+	clist(int) * node;
 	clist_assign(node, list->base.next);
 	int i = 10;
-	clist_foreach(val, node) {
+	clist_foreach(val, node)
+	{
 		--i;
 		cr_assert_eq(*val, i);
 	}
@@ -143,10 +145,11 @@ Test(clist, push_before)
 		clist_push_before(list, i, NULL);
 		cr_assert_eq(clist_prev_object(list), i);
 	}
-	clist(int) *node;
+	clist(int) * node;
 	clist_assign(node, list->base.next);
 	int i = 0;
-	clist_foreach(val, node) {
+	clist_foreach(val, node)
+	{
 		cr_assert_eq(*val, i);
 		++i;
 	}
@@ -170,7 +173,8 @@ Test(clist, emplace_back)
 	}
 	cr_assert_eq(clist_size(list), 5); /* 0 2 4 6 8 */
 	int i = 0;
-	clist_foreach(val, list) {
+	clist_foreach(val, list)
+	{
 		cr_assert_eq(*val, i * 2);
 		++i;
 	}
@@ -185,7 +189,8 @@ Test(clist, emplace_front)
 		clist_emplace_front(list, NULL, set_value, i);
 	cr_assert_eq(clist_size(list), 5); /* 8 6 4 2 0 */
 	int i = 10;
-	clist_foreach(val, list) {
+	clist_foreach(val, list)
+	{
 		i -= 2;
 		cr_assert_eq(*val, i);
 	}
@@ -202,10 +207,11 @@ Test(clist, emplace_after)
 		clist_emplace_after(list, NULL, set_value, i * 2);
 		cr_assert_eq(clist_next_object(list), i * 2);
 	}
-	clist(int) *node;
+	clist(int) * node;
 	clist_assign(node, list->base.next);
 	int i = 10;
-	clist_foreach(val, node) {
+	clist_foreach(val, node)
+	{
 		--i;
 		cr_assert_eq(*val, i * 2);
 	}
@@ -222,10 +228,11 @@ Test(clist, emplace_before)
 		clist_emplace_before(list, NULL, set_value, i * 2);
 		cr_assert_eq(clist_prev_object(list), i * 2);
 	}
-	clist(int) *node;
+	clist(int) * node;
 	clist_assign(node, list->base.next);
 	int i = 0;
-	clist_foreach(val, node) {
+	clist_foreach(val, node)
+	{
 		cr_assert_eq(*val, i * 2);
 		++i;
 	}
@@ -235,7 +242,7 @@ Test(clist, emplace_before)
 Test(clist, swap)
 {
 	clist(int) *list = NULL;
-	clist(int) *p;
+	clist(int) * p;
 
 	clist_push_back(list, 5, NULL);
 	clist_push_back(list, 14344, NULL);
@@ -265,11 +272,12 @@ Test(clist, swap)
 Test(clist, remove)
 {
 	clist(int) *list = NULL;
-	clist(int) *p;
+	clist(int) * p;
 
 	for (int i = 0; i < 20; ++i)
 		clist_push_back(list, i, NULL);
-	clist_foreach(var, list) {
+	clist_foreach(var, list)
+	{
 		clist_assign(p, clist_from_object(var)->base.next);
 		if (p->object > 5) {
 			clist_remove(p);
@@ -278,7 +286,8 @@ Test(clist, remove)
 	}
 	cr_assert_eq(clist_size(list), 13);
 	int i = 0;
-	clist_foreach(var, list) {
+	clist_foreach(var, list)
+	{
 		if (i <= 5)
 			cr_assert_eq(*var, i);
 		else

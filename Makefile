@@ -17,6 +17,7 @@ SRCS		+= src/emplace_after.c
 SRCS		+= src/emplace_before.c
 SRCS		+= src/push_after.c
 SRCS		+= src/push_before.c
+SRCS		+= src/move.c
 
 TESTS_SRCS	= tests/clist.c
 
