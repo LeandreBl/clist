@@ -1,6 +1,6 @@
 #include "clist.h"
 
-void clist_generic_emplace_front(void *plist, void *pnode, void (* destructor_p)())
+void clist_generic_emplace_front(void *plist, void *pnode, void (*destructor_p)())
 {
 	struct clist_node_internal *list = plist;
 	struct clist_node_internal *node = pnode;

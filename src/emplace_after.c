@@ -1,10 +1,10 @@
 #include "clist.h"
 
-void clist_generic_emplace_after(void *plist, void *pnode, void (* pdestructor)())
+void clist_generic_emplace_after(void *plist, void *pnode, void (*pdestructor)())
 {
 	struct clist_node_internal *list = plist;
 	struct clist_node_internal *node = pnode;
-	void (* destructor)(void *) = pdestructor;
+	void (*destructor)(void *) = pdestructor;
 
 	node->destructor = destructor;
 	node->prev = list;
