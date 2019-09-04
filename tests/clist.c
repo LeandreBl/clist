@@ -280,7 +280,7 @@ Test(clist, remove)
 	{
 		clist_assign(p, clist_from_object(var)->base.next);
 		if (p->object > 5) {
-			clist_remove(p);
+			clist_remove(list, p);
 			free(p);
 		}
 	}
