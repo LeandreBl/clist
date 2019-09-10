@@ -204,17 +204,17 @@ struct clist_node_internal {
 				clist_assign(list_ptr, clist_next(node));      \
 		}                                                              \
 		clist_generic_remove(node);                                    \
-		clist_assign((node)->base.prev, node);                         \
-		clist_assign((node)->base.next, node);                         \
+		clist_assign(clist_prev(node), node);                          \
+		clist_assign(clist_next(node), node);                          \
 	} while (0)
 
 #define clist_erase(list_ptr, node)                                            \
 	do {                                                                   \
 		if (node == list_ptr) {                                        \
-			if (node->next == node)                                \
+			if (clist_next(node) == node)                          \
 				clist_assign(list_ptr, NULL);                  \
 			else                                                   \
-				clist_assign(list_ptr, node->next);            \
+				clist_assign(list_ptr, clist_next(node));      \
 		}                                                              \
 		clis_generic_erase(node);                                      \
 	} while (0)
