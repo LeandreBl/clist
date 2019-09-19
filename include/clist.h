@@ -35,7 +35,7 @@ struct clist_node_internal {
 				  - offsetof(clist(typeof(*object_addr)),      \
 					     object)))
 
-#define clist_assign(dest_ptr, src_ptr) (dest_ptr = (void *)src_ptr)
+#define clist_assign(dest_ptr, src_ptr) ((dest_ptr) = (void *)src_ptr)
 
 #define clist_assign_from_object(list_ptr, object_addr)                        \
 	clist_assign(list_ptr, clist_from_object(object_addr))
@@ -204,8 +204,8 @@ struct clist_node_internal {
 				clist_assign(list_ptr, clist_next(node));      \
 		}                                                              \
 		clist_generic_remove(node);                                    \
-		clist_assign(clist_prev(node), node);                          \
-		clist_assign(clist_next(node), node);                          \
+		clist_assign(node->base.prev, node);                           \
+		clist_assign(node->base.next, node);                           \
 	} while (0)
 
 #define clist_erase(list_ptr, node)                                            \
@@ -216,7 +216,7 @@ struct clist_node_internal {
 			else                                                   \
 				clist_assign(list_ptr, clist_next(node));      \
 		}                                                              \
-		clis_generic_erase(node);                                      \
+		clist_generic_erase(node);                                     \
 	} while (0)
 
 #define clist_move_after(node, dest_node)                                      \
