@@ -4,8 +4,8 @@
 
 Test(clist, foreach)
 {
-	clist(int) * first;
-	clist(int) * second;
+	clist(int) *first;
+	clist(int) *second;
 
 	clist_new_node(first, 12, NULL);
 	clist_new_node(second, 42, NULL);
@@ -124,7 +124,7 @@ Test(clist, push_after)
 		clist_push_after(list, i, NULL);
 		cr_assert_eq(clist_next_object(list), i);
 	}
-	clist(int) * node;
+	clist(int) *node;
 	clist_assign(node, list->base.next);
 	int i = 10;
 	clist_foreach(val, node)
@@ -145,7 +145,7 @@ Test(clist, push_before)
 		clist_push_before(list, i, NULL);
 		cr_assert_eq(clist_prev_object(list), i);
 	}
-	clist(int) * node;
+	clist(int) *node;
 	clist_assign(node, list->base.next);
 	int i = 0;
 	clist_foreach(val, node)
@@ -207,7 +207,7 @@ Test(clist, emplace_after)
 		clist_emplace_after(list, NULL, set_value, i * 2);
 		cr_assert_eq(clist_next_object(list), i * 2);
 	}
-	clist(int) * node;
+	clist(int) *node;
 	clist_assign(node, list->base.next);
 	int i = 10;
 	clist_foreach(val, node)
@@ -228,7 +228,7 @@ Test(clist, emplace_before)
 		clist_emplace_before(list, NULL, set_value, i * 2);
 		cr_assert_eq(clist_prev_object(list), i * 2);
 	}
-	clist(int) * node;
+	clist(int) *node;
 	clist_assign(node, list->base.next);
 	int i = 0;
 	clist_foreach(val, node)
@@ -242,7 +242,7 @@ Test(clist, emplace_before)
 Test(clist, swap)
 {
 	clist(int) *list = NULL;
-	clist(int) * p;
+	clist(int) *p;
 
 	clist_push_back(list, 5, NULL);
 	clist_push_back(list, 14344, NULL);
@@ -272,7 +272,7 @@ Test(clist, swap)
 Test(clist, remove)
 {
 	clist(int) *list = NULL;
-	clist(int) * p;
+	clist(int) *p;
 
 	for (int i = 0; i < 20; ++i)
 		clist_push_back(list, i, NULL);
@@ -295,4 +295,19 @@ Test(clist, remove)
 		++i;
 	}
 	clist_destroy(list);
+}
+
+Test(clist, backward_foreach)
+{
+	clist(int) *list = NULL;
+
+	for (int i = 0; i < 20; ++i) {
+		clist_push_back(list, i, NULL);
+	}
+	int i = 19;
+	clist_backward_foreach(value, list)
+	{
+		cr_assert_eq(*value, i);
+		i--;
+	}
 }

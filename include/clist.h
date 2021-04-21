@@ -55,25 +55,27 @@ struct clist_node_internal
 		(list_ptr)->object = item;                    \
 	} while (0);
 
-#define clist_foreach(item, list_ptr)                                     \
-	for (typeof((list_ptr)->object) *item = &(list_ptr)->object;          \
-		 list_ptr != NULL && item != NULL;                                \
-		 item = (((clist(typeof((list_ptr)->object)) *)clist_from_object( \
-					  item))                                              \
-					 ->base.next == (void *)(list_ptr))                   \
-					? NULL                                                \
-					: &(clist_next_object(clist_from_object(item))))
+#define clist_foreach(item, list_ptr)                                          \
+	for (typeof((list_ptr)->object) *item = &(list_ptr)->object;           \
+	     list_ptr != NULL && item != NULL;                                 \
+	     item = (((clist(typeof((list_ptr)->object)) *)clist_from_object(  \
+			      item))                                           \
+			     ->base.next                                       \
+		     == (void *)(list_ptr))                                    \
+			    ? NULL                                             \
+			    : &(clist_next_object(clist_from_object(item))))
 
-#define clist_backward_foreach(list_ptr)                                  \
-	for (typeof((list_ptr)->object) *item = &(list_ptr)->object;          \
-		 item != NULL;                                                    \
-		 item = (((clist(typeof((list_ptr)->object)) *)clist_from_object( \
-					  item))                                              \
-					 ->base.prev == (list_ptr))                           \
-					? NULL                                                \
-					: &(clist_prev_object(clist_from_object(item))))
+#define clist_backward_foreach(item, list_ptr)                                       \
+	for (typeof((list_ptr)->object) *item = &(clist_prev_object(list_ptr));           \
+	     list_ptr != NULL && item != NULL;                                                     \
+	     item = (((clist(typeof((list_ptr)->object)) *)clist_from_object(  \
+			      item))                                           \
+			     ->base.prev                                       \
+		     == (void *)(list_ptr))                                            \
+			    ? NULL                                             \
+			    : &(clist_prev_object(clist_from_object(item))))
 
-#define clist_push_back(list_ptr, item, destructor_fn) \
+#define clist_push_back(list_ptr, item, destructor_fn)                         \
 	clist_push_before(list_ptr, item, destructor_fn)
 
 #define clist_emplace_back(list_ptr, destructor_fn, constructor_fn, ...) \
